@@ -6,7 +6,8 @@ This boilerplate provides an automatic web development environment with gulp to 
 
 ## Steps
 
-1. Install the [LiveReload](https://chrome.google.com/webstore/detail/livereload/jnihajbhpnppcggbcgedagnkighmdlei "LiveReload") plugin to your Chrome browser to enable a live reload.
+1. Install the [LiveReload](https://chrome.google.com/webstore/detail/livereload/jnihajbhpnppcggbcgedagnkighmdlei "LiveReload") plugin to your Chrome to enable a live reload.
 1. Clone this repository via `git`.
-1. Type `yarn` or `npm install`.
-1. Type `gulp` and start developing your web site.
+1. Install modules via `yarn install` or `npm install`.
+1. Type `gulp` and See `http://localhost:3000/` via your Chrome.
+1. Enjoy developing your web site.

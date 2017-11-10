@@ -7,6 +7,8 @@ const plumber = require('gulp-plumber');
 const sourcemaps = require('gulp-sourcemaps');
 const rename = require('gulp-rename');
 const del = require('del');
+const zip = require('gulp-zip');
+const sequence = require('run-sequence');
 const babel = require('gulp-babel');
 const sass = require('gulp-sass');
 const packageImporter = require('node-sass-package-importer');
@@ -18,9 +20,17 @@ const DIST_PATH = 'public/dist';
 const SCRIPTS_PATH = 'public/scripts/**/*.js';
 const SCSS_PATH = 'public/scss/**/*.scss';
 const IMAGES_PATH = 'public/images/**/*.{png,jpeg,jpg,svg,gif}';
+const EXPORT_PATH = 'export';
 
 gulp.task('clean', () => {
   return del.sync([DIST_PATH, EXPORT_PATH]);
+});
+
+gulp.task('export', () => {
+  return gulp
+    .src(['public/**/dist/**/*', 'public/index.html'])
+    .pipe(zip('website.zip'))
+    .pipe(gulp.dest(EXPORT_PATH));
 });
 
 gulp.task('styles', () => {
@@ -47,6 +57,22 @@ gulp.task('styles', () => {
     .pipe(livereload());
 });
 
+gulp.task('images', () => {
+  return gulp
+    .src(IMAGES_PATH)
+    .pipe(
+      imagemin([
+        imagemin.gifsicle(),
+        imagemin.jpegtran(),
+        imagemin.optipng(),
+        imagemin.svgo(),
+        imageminPngquant(),
+        imageminJpegRecompress()
+      ])
+    )
+    .pipe(gulp.dest(DIST_PATH + '/images'));
+});
+
 gulp.task('scripts', () => {
   return gulp
     .src(SCRIPTS_PATH)
@@ -66,27 +92,15 @@ gulp.task('scripts', () => {
     .pipe(livereload());
 });
 
-gulp.task('images', () => {
-  return gulp
-    .src(IMAGES_PATH)
-    .pipe(
-      imagemin([
-        imagemin.gifsicle(),
-        imagemin.jpegtran(),
-        imagemin.optipng(),
-        imagemin.svgo(),
-        imageminPngquant(),
-        imageminJpegRecompress()
-      ])
-    )
-    .pipe(gulp.dest(DIST_PATH + '/images'));
+gulp.task('build', () => {
+  sequence('clean', ['styles', 'images', 'scripts']);
 });
 
-gulp.task('default', ['images', 'styles', 'scripts'], () => {});
-
-gulp.task('watch', ['default'], () => {
+gulp.task('watch', ['build'], () => {
   require('./server');
   livereload.listen();
   gulp.watch(SCSS_PATH, ['styles']);
   gulp.watch(SCRIPTS_PATH, ['scripts']);
 });
+
+gulp.task('default', ['watch'], () => {});
