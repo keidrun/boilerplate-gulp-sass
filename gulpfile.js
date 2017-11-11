@@ -1,36 +1,46 @@
-const gulp = require('gulp');
-const uglify = require('gulp-uglify');
-const livereload = require('gulp-livereload');
-const concat = require('gulp-concat');
-const autoprefixer = require('gulp-autoprefixer');
-const plumber = require('gulp-plumber');
-const sourcemaps = require('gulp-sourcemaps');
-const rename = require('gulp-rename');
-const del = require('del');
-const zip = require('gulp-zip');
-const sequence = require('run-sequence');
-const babel = require('gulp-babel');
-const sass = require('gulp-sass');
-const packageImporter = require('node-sass-package-importer');
-const imagemin = require('gulp-imagemin');
-const imageminPngquant = require('imagemin-pngquant');
-const imageminJpegRecompress = require('imagemin-jpeg-recompress');
+const gulp = require('gulp'),
+  uglify = require('gulp-uglify'),
+  browserSync = require('browser-sync').create(),
+  concat = require('gulp-concat'),
+  autoprefixer = require('gulp-autoprefixer'),
+  plumber = require('gulp-plumber'),
+  sourcemaps = require('gulp-sourcemaps'),
+  rename = require('gulp-rename'),
+  del = require('del'),
+  zip = require('gulp-zip'),
+  sequence = require('run-sequence'),
+  babel = require('gulp-babel'),
+  sass = require('gulp-sass'),
+  packageImporter = require('node-sass-package-importer'),
+  imagemin = require('gulp-imagemin'),
+  imageminPngquant = require('imagemin-pngquant'),
+  imageminJpegRecompress = require('imagemin-jpeg-recompress');
 
-const DIST_PATH = 'public/dist';
-const SCRIPTS_PATH = 'public/scripts/**/*.js';
-const SCSS_PATH = 'public/scss/**/*.scss';
-const IMAGES_PATH = 'public/images/**/*.{png,jpeg,jpg,svg,gif}';
-const EXPORT_PATH = 'export';
+const DIST_PATH = 'public/dist',
+  IMAGES_PATH = 'public/images/**/*.{png,jpeg,jpg,svg,gif}',
+  SCRIPTS_PATH = 'public/scripts/**/*.js',
+  SCSS_PATH = 'public/scss/**/*.scss',
+  HTML_PATH = 'public/*.html',
+  EXPORT_PATH = 'export';
 
 gulp.task('clean', () => {
   return del.sync([DIST_PATH, EXPORT_PATH]);
 });
 
-gulp.task('export', () => {
+gulp.task('images', () => {
   return gulp
-    .src(['public/**/dist/**/*', 'public/index.html'])
-    .pipe(zip('website.zip'))
-    .pipe(gulp.dest(EXPORT_PATH));
+    .src(IMAGES_PATH)
+    .pipe(
+      imagemin([
+        imagemin.gifsicle(),
+        imagemin.jpegtran(),
+        imagemin.optipng(),
+        imagemin.svgo(),
+        imageminPngquant(),
+        imageminJpegRecompress()
+      ])
+    )
+    .pipe(gulp.dest(DIST_PATH + '/images'));
 });
 
 gulp.task('styles', () => {
@@ -51,26 +61,14 @@ gulp.task('styles', () => {
         })
       })
     )
-    .pipe(rename({ suffix: '.min' }))
+    .pipe(
+      rename({
+        suffix: '.min'
+      })
+    )
     .pipe(sourcemaps.write())
     .pipe(gulp.dest(DIST_PATH))
-    .pipe(livereload());
-});
-
-gulp.task('images', () => {
-  return gulp
-    .src(IMAGES_PATH)
-    .pipe(
-      imagemin([
-        imagemin.gifsicle(),
-        imagemin.jpegtran(),
-        imagemin.optipng(),
-        imagemin.svgo(),
-        imageminPngquant(),
-        imageminJpegRecompress()
-      ])
-    )
-    .pipe(gulp.dest(DIST_PATH + '/images'));
+    .pipe(browserSync.stream());
 });
 
 gulp.task('scripts', () => {
@@ -86,21 +84,39 @@ gulp.task('scripts', () => {
     )
     .pipe(uglify())
     .pipe(concat('scripts.js'))
-    .pipe(rename({ suffix: '.min' }))
+    .pipe(
+      rename({
+        suffix: '.min'
+      })
+    )
     .pipe(sourcemaps.write())
     .pipe(gulp.dest(DIST_PATH))
-    .pipe(livereload());
+    .pipe(browserSync.stream());
+});
+
+gulp.task('html', () => {
+  return gulp.src('public/index.html').pipe(gulp.dest(DIST_PATH));
 });
 
 gulp.task('build', () => {
-  sequence('clean', ['styles', 'images', 'scripts']);
+  return sequence('clean', ['images', 'styles', 'scripts', 'html']);
+});
+
+gulp.task('export', () => {
+  return gulp
+    .src(DIST_PATH + '/**/*')
+    .pipe(zip('website.zip'))
+    .pipe(gulp.dest(EXPORT_PATH));
 });
 
 gulp.task('watch', ['build'], () => {
-  require('./server');
-  livereload.listen();
+  browserSync.init({
+    server: DIST_PATH,
+    index: 'index.html'
+  });
   gulp.watch(SCSS_PATH, ['styles']);
   gulp.watch(SCRIPTS_PATH, ['scripts']);
+  gulp.watch(HTML_PATH, ['html']).on('change', browserSync.reload);
 });
 
 gulp.task('default', ['watch'], () => {});
