@@ -95,7 +95,7 @@ gulp.task('scripts', () => {
 });
 
 gulp.task('html', () => {
-  return gulp.src('public/index.html').pipe(gulp.dest(DIST_PATH));
+  return gulp.src(HTML_PATH).pipe(gulp.dest(DIST_PATH));
 });
 
 gulp.task('build', () => {

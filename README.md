@@ -4,6 +4,21 @@ Boilerplate of SASS with Gulp.
 ## Description
 This boilerplate provides an automatic web development environment with gulp to develop HTML, CSS(SASS/SCSS) and Javascript(ES6/ES2015).
 
+## Automatic Settings
+
+- transpile for CSS (SASS -> CSS)
+- modify CSS (normalize.css & autoprefixer)
+- transpile for JS (ES6 -> ES5)
+- optimize images
+- package (minify CSS & JS)
+- zip
+
+## Preconditions
+
+- Installed `Chrome` browser.
+- Installed `yarn` or `npm`.
+- Installed `gulp` globally.
+
 ## Steps
 
 1. Clone this repository via `git`.
