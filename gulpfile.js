@@ -2,7 +2,6 @@ const gulp = require('gulp'),
   uglify = require('gulp-uglify'),
   browserSync = require('browser-sync').create(),
   concat = require('gulp-concat'),
-  autoprefixer = require('gulp-autoprefixer'),
   plumber = require('gulp-plumber'),
   sourcemaps = require('gulp-sourcemaps'),
   rename = require('gulp-rename'),
@@ -10,18 +9,27 @@ const gulp = require('gulp'),
   zip = require('gulp-zip'),
   sequence = require('run-sequence'),
   babel = require('gulp-babel'),
-  sass = require('gulp-sass'),
-  packageImporter = require('node-sass-package-importer'),
   imagemin = require('gulp-imagemin'),
   imageminPngquant = require('imagemin-pngquant'),
   imageminJpegRecompress = require('imagemin-jpeg-recompress');
+
+const sass = require('gulp-sass'),
+  packageImporter = require('node-sass-package-importer');
+
+const postcss = require('gulp-postcss'),
+  syntaxScss = require('postcss-scss'),
+  reporter = require('postcss-reporter'),
+  stylefmt = require('stylefmt'),
+  stylelint = require('stylelint'),
+  autoprefixer = require('autoprefixer');
 
 const DIST_PATH = 'public/dist',
   IMAGES_PATH = 'public/images/**/*.{png,jpeg,jpg,svg,gif}',
   SCRIPTS_PATH = 'public/scripts/**/*.js',
   SCSS_PATH = 'public/scss/**/*.scss',
   HTML_PATH = 'public/*.html',
-  EXPORT_PATH = 'export';
+  EXPORT_PATH = 'export',
+  BROWSERS = ['last 2 versions', 'ie 8'];
 
 gulp.task('clean', () => {
   return del.sync([DIST_PATH, EXPORT_PATH]);
@@ -44,15 +52,20 @@ gulp.task('images', () => {
 });
 
 gulp.task('styles', () => {
+  const plugins = [
+    stylefmt(),
+    stylelint(),
+    autoprefixer({ browsers: BROWSERS }),
+    reporter({
+      clearMessages: true,
+      throwError: true
+    })
+  ];
   return gulp
     .src('public/scss/styles.scss')
     .pipe(plumber())
     .pipe(sourcemaps.init())
-    .pipe(
-      autoprefixer({
-        browsers: ['last 2 versions', 'ie 8']
-      })
-    )
+    .pipe(postcss(plugins, { syntax: syntaxScss }))
     .pipe(
       sass({
         outputStyle: 'compressed',
