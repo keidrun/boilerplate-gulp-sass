@@ -7,7 +7,8 @@ This boilerplate provides an automatic web development environment with gulp to 
 ## Automatic Settings
 
 - transpile for CSS (SASS -> CSS)
-- modify CSS (normalize.css & autoprefixer)
+- attache CSS (normalize.css & autoprefixer)
+- format CSS (stylelint)
 - transpile for JS (ES6 -> ES5)
 - optimize images
 - package (minify CSS & JS)
